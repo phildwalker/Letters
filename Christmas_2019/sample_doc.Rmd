@@ -1,0 +1,37 @@
+---
+title: "Christmas 2019"
+output:
+  pdf_document: default
+fontsize: 10pt
+geometry: margin=0.5in
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushleft}}
+  - \posttitle{\end{flushleft}}
+---
+
+Ideas
+================================================================================
+
+* Lauren successfully defended her dissertation
+  +  Driving back to MI
+* started new jobs
+  +  Lauren spent much of Jan-March interviewing across the US (OR, NC, CA, VA, )
+  +  Lauren at Elon as a Associate Professor in Exercise Science (start August)
+  +  Me as a Business Analytics Consultant for Cone Health in Greensboro (started EOM October)
+* Move from Michigan to North Carolina
+* Weddings
+* Friend of Alex/Elaine who read the letter... being recognized from the letter
+* Trips to Louisville, NOLA, Portland + Ashville and Boone
+  +  Exploring KY, stocking up on bourbon
+  +  Time on the bayou, saints game, exploring the city
+  +  Hiking in PNW, exploring the 
+* Christine visiting with Ryan.. learning about Rum
+* Me whirlwind trip to CA for Justin/KP wedding
+* Me getting involved with the frisbee communities out here
+* left MI with an amazing softball tourney
+* said goodbye to Jack, and hello to Jefferson
+
+
+Content
+================================================================================
