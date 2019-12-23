@@ -1,0 +1,121 @@
+---
+title: 'Pulling Location Information From Google Sheets'
+output:
+  html_document:
+    df_print: paged
+    code_folding: hide
+    toc: true
+    toc_float: true
+    theme: spacelab
+    includes:
+      after_body: footer.html
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+
+```{css, echo=FALSE}
+body .main-container {
+  max-width: 100% !important;
+  width: 100% !important;
+    }
+body {
+  max-width: 100% !important;
+    }
+```
+
+
+```{r read in data, results='asis', echo=FALSE, include=FALSE}
+library(tidyverse)
+library(ggthemes)
+library(knitr)
+library(viridis)
+library(kableExtra)
+
+```
+
+Reading in address from the google sheets and then determining the lat/long from there
+
+```{r read from google}
+# install.packages("googlesheets4")
+
+library(googledrive)
+library(googlesheets4)
+
+Addres <- drive_get("Christmas_Addresses")
+
+sheets_get(Addres)
+
+FullAdd <- read_sheet(Addres)
+
+```
+try to geocode the addresses 
+
+```{r get geocodes from address}
+# install.packages('tidygeocoder')
+# library(tidygeocoder)
+# library(tidyverse)
+# 
+# home <- tribble( ~name,~addr,
+# "Home", "7063 W Friendly Ave Unit B, Greensboro, NC 27410") %>%
+#   geocode(addr ,lat=latitude,long=longitude)
+# 
+# 
+# AddresTibb <- as_tibble(FullAdd) %>% 
+#   filter(!is.na(Address)) %>%
+#   rename(Addr = Address) %>% 
+#   geocode(GeoAdd,lat=latitude,long=longitude)
+# 
+# Rep <- nrow(AddresTibb)
+# 
+# HomeDup <- 
+#   home %>% 
+#   slice(rep(1:n(), each = Rep)) %>% 
+#   mutate(rowNum = row_number()) %>% 
+#   select(latitude, longitude, rowNum)
+# 
+# ComboData <-
+#   AddresTibb %>% 
+#   select(latitude, longitude) %>% 
+#   mutate(rowNum = row_number()) %>% 
+#   mutate(rowNum = as.character(rowNum),
+#          fake = 1) %>% 
+#   full_join(., 
+#             home %>% select(EndLat = latitude, EndLong = longitude) %>% mutate(fake =1), 
+#             by = c("fake")) %>% 
+#   select(-fake)
+# 
+# write_csv(ComboData, here::here("ComboResults.csv"))
+
+ComboData <- read_csv(here::here("ComboResults.csv")) %>% 
+  mutate(rowNum = as.character(rowNum))
+
+```
+
+plot addresses on a map
+
+```{r map pretty picture}
+
+library(ggplot2)
+library(maps)
+library(ggrepel)
+
+
+ggplot(ComboData ) +
+  borders("state",colour="grey50", fill="black") + 
+  # theme_map() +
+ geom_curve(aes(yend = EndLat, xend = EndLong, x = longitude, y = latitude),    
+            arrow = arrow(angle = 15, ends = "first", length = unit(0.2, "cm"), type = "closed"), color = "#f9ba00", size=0.9,
+            alpha = 0.5, curvature = 0.15, inherit.aes = TRUE) +
+  geom_point(aes(longitude, latitude, group=rowNum),color="maroon", size=1.6, alpha=0.8) + #shape=21, 
+  theme(line = element_blank(),text = element_blank(),title = element_blank()) +
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  # scale_size_continuous(range=c(1,30)) +
+  coord_cartesian()+
+  NULL
+
+
+
+```
+
+
