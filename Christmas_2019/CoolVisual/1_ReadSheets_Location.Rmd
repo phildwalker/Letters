@@ -7,8 +7,6 @@ output:
     toc: true
     toc_float: true
     theme: spacelab
-    includes:
-      after_body: footer.html
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
@@ -33,6 +31,7 @@ library(kableExtra)
 
 ```
 
+# Pull Data
 Reading in address from the google sheets and then determining the lat/long from there
 
 ```{r read from google}
@@ -48,6 +47,9 @@ sheets_get(Addres)
 FullAdd <- read_sheet(Addres)
 
 ```
+
+# Clean Data
+
 try to geocode the addresses 
 
 ```{r get geocodes from address}
@@ -91,9 +93,11 @@ ComboData <- read_csv(here::here("ComboResults.csv")) %>%
 
 ```
 
+# Do a fun plot of data
+
 plot addresses on a map
 
-```{r map pretty picture}
+```{r map pretty picture, fig.width=16, fig.height=10, out.width="100%", out.height="50%"}
 
 library(ggplot2)
 library(maps)
