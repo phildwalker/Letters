@@ -46,47 +46,65 @@ sheets_get(Addres)
 
 FullAdd <- read_sheet(Addres)
 
+Addclean <- 
+  FullAdd %>% 
+  mutate(GeoAdd2 = ifelse(is.na(GeoAdd), Address, GeoAdd))
+
 ```
 
 # Clean Data
 
 try to geocode the addresses 
 
+used the following link to figure out an address near by if OSM didn't like the original address 
+[Link](https://nominatim.openstreetmap.org/)
+
 ```{r get geocodes from address}
 # install.packages('tidygeocoder')
-# library(tidygeocoder)
-# library(tidyverse)
-# 
-# home <- tribble( ~name,~addr,
-# "Home", "7063 W Friendly Ave Unit B, Greensboro, NC 27410") %>%
-#   geocode(addr ,lat=latitude,long=longitude)
-# 
-# 
-# AddresTibb <- as_tibble(FullAdd) %>% 
-#   filter(!is.na(Address)) %>%
-#   rename(Addr = Address) %>% 
-#   geocode(GeoAdd,lat=latitude,long=longitude)
-# 
-# Rep <- nrow(AddresTibb)
-# 
-# HomeDup <- 
-#   home %>% 
-#   slice(rep(1:n(), each = Rep)) %>% 
-#   mutate(rowNum = row_number()) %>% 
-#   select(latitude, longitude, rowNum)
-# 
-# ComboData <-
-#   AddresTibb %>% 
-#   select(latitude, longitude) %>% 
-#   mutate(rowNum = row_number()) %>% 
-#   mutate(rowNum = as.character(rowNum),
-#          fake = 1) %>% 
-#   full_join(., 
-#             home %>% select(EndLat = latitude, EndLong = longitude) %>% mutate(fake =1), 
-#             by = c("fake")) %>% 
-#   select(-fake)
-# 
-# write_csv(ComboData, here::here("ComboResults.csv"))
+library(tidygeocoder)
+library(tidyverse)
+
+home <- tribble( ~name,~addr,
+"Home", "7063 W Friendly Ave Unit B, Greensboro, NC 27410") %>%
+  geocode(addr ,lat=latitude,long=longitude)
+
+
+AddresTibb <- as_tibble(Addclean) %>%
+  filter(!is.na(Address)) %>%
+  rename(Addr = Address) %>%
+  geocode(GeoAdd2,lat=latitude,long=longitude)
+
+Rep <- nrow(AddresTibb)
+
+HomeDup <-
+  home %>%
+  slice(rep(1:n(), each = Rep)) %>%
+  mutate(rowNum = row_number()) %>%
+  select(latitude, longitude, rowNum) %>% 
+  mutate(rowNum = as.character(rowNum))
+
+
+Comb_Union <-
+  AddresTibb %>%
+  select(latitude, longitude) %>%
+  mutate(rowNum = row_number()) %>%
+  mutate(rowNum = as.character(rowNum)) %>%
+  rbind(., HomeDup)
+
+
+
+ComboData <-
+  AddresTibb %>%
+  select(latitude, longitude) %>%
+  mutate(rowNum = row_number()) %>%
+  mutate(rowNum = as.character(rowNum),
+         fake = 1) %>%
+  full_join(.,
+            home %>% select(EndLat = latitude, EndLong = longitude) %>% mutate(fake =1),
+            by = c("fake")) %>%
+  select(-fake)
+
+write_csv(ComboData, here::here("ComboResults.csv"))
 
 ComboData <- read_csv(here::here("ComboResults.csv")) %>% 
   mutate(rowNum = as.character(rowNum))
@@ -104,21 +122,33 @@ library(maps)
 library(ggrepel)
 
 
-ggplot(ComboData ) +
+ggplot(Comb_Union) +
   borders("state",colour="grey50", fill="black") + 
-  # theme_map() +
- geom_curve(aes(yend = EndLat, xend = EndLong, x = longitude, y = latitude),    
-            arrow = arrow(angle = 15, ends = "first", length = unit(0.2, "cm"), type = "closed"), color = "#f9ba00", size=0.9,
-            alpha = 0.5, curvature = 0.15, inherit.aes = TRUE) +
-  geom_point(aes(longitude, latitude, group=rowNum),color="maroon", size=1.6, alpha=0.8) + #shape=21, 
+  theme_map() +
+  geom_line(aes(longitude, latitude, group=rowNum), color = "#f9ba00", size=1, alpha=0.6)+
+  geom_point(aes(longitude, latitude, group=rowNum),color="maroon", size=1.7, alpha=1) + #shape=21, 
   theme(line = element_blank(),text = element_blank(),title = element_blank()) +
   scale_x_continuous(breaks = NULL) +
   scale_y_continuous(breaks = NULL) +
-  # scale_size_continuous(range=c(1,30)) +
-  coord_cartesian()+
+  coord_map("albers", lat0=30, lat1=40)+
   NULL
 
 
+
+# ggplot(ComboData ) +
+#   borders("state",colour="grey50", fill="black") + 
+#   geom_curve(aes(yend = EndLat, xend = EndLong, x = longitude, y = latitude),
+#             arrow = arrow(angle = 15, ends = "first", length = unit(0.01, "npc"), type = "closed"), color = "#f9ba00", size=0.9,
+#             alpha = 0.5,inherit.aes = TRUE, curvature = -0.2) +
+#   geom_point(aes(longitude, latitude, group=rowNum),color="maroon", size=1.6, shape=21) + #shape=21, 
+#   theme(line = element_blank(),text = element_blank(),title = element_blank()) +
+#   scale_x_continuous(breaks = NULL) +
+#   scale_y_continuous(breaks = NULL) +
+#   coord_cartesian()+
+#   NULL
+
+
+ggsave(here::here("CardsViz.png"), width = 16, height = 10)
 
 ```
 
